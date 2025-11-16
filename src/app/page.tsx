@@ -5,6 +5,8 @@ import { PaletteSidebar, Toolbar, CanvasContainer, ChatPanel } from '@/component
 import { PlacedComponent, ComponentType, Mode } from '@/types/types';
 import type { KonvaStage } from '@/types/konva';
 import { WireframeGenerator, SVGExporter, PNGExporter } from '@/lib/wireframe';
+import { executeOperations } from '@/lib/agent/operationExecutor';
+import { SketchModification } from '@/lib/agent/schemas';
 
 export default function Home() {
   const [components, setComponents] = useState<PlacedComponent[]>([]);
@@ -149,6 +151,17 @@ export default function Home() {
     stageRef.current = stage;
   };
 
+  const handleModifyComponents = (modification: SketchModification) => {
+    try {
+      const updatedComponents = executeOperations(components, modification.operations);
+      setComponents(updatedComponents);
+      setSelectedId(null);
+    } catch (error) {
+      console.error('Error applying modification:', error);
+      alert('Failed to apply modification: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <PaletteSidebar onSelectType={handleSelectType} currentType={currentType} />
@@ -174,7 +187,7 @@ export default function Home() {
           onResize={handleResize}
           onStageRef={handleStageRef}
         />
-        <ChatPanel />
+        <ChatPanel components={components} onModifyComponents={handleModifyComponents} />
       </div>
     </div>
   );

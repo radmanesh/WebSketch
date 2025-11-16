@@ -1,0 +1,146 @@
+[
+  {
+    "id": "component-1763286679246-q86quy72p",
+    "type": "Input",
+    "x": 83.28513789611293,
+    "y": 38.80850520790722,
+    "width": 428.17700306353385,
+    "height": 47.72778114814628,
+    "props": {}
+  },
+  {
+    "id": "component-1763286912020-7w8dnsyso",
+    "type": "Button",
+    "x": 544,
+    "y": 36,
+    "width": 150,
+    "height": 53,
+    "props": {}
+  },
+  {
+    "id": "component-1763286916152-wnmy3spkh",
+    "type": "ImagePlaceholder",
+    "x": 88,
+    "y": 104,
+    "width": 601,
+    "height": 166,
+    "props": {}
+  },
+  {
+    "id": "component-1763286922778-l1hln1dxp",
+    "type": "ImagePlaceholder",
+    "x": 741,
+    "y": 30,
+    "width": 654,
+    "height": 244,
+    "props": {}
+  },
+  {
+    "id": "component-1763286932629-fcg12exyy",
+    "type": "HorizontalLine",
+    "x": 95,
+    "y": 531,
+    "width": 1315,
+    "height": 29,
+    "props": {}
+  },
+  {
+    "id": "component-1763286938570-8als9yovs",
+    "type": "Heading",
+    "x": 741,
+    "y": 296,
+    "width": 650,
+    "height": 65,
+    "props": {}
+  },
+  {
+    "id": "component-1763286945558-lh95obnhy",
+    "type": "Text",
+    "x": 748,
+    "y": 382,
+    "width": 636,
+    "height": 79,
+    "props": {}
+  },
+  {
+    "id": "component-1763286951895-nfsv9klqn",
+    "type": "Button",
+    "x": 1263,
+    "y": 479,
+    "width": 103,
+    "height": 44,
+    "props": {}
+  },
+  {
+    "id": "component-1763286959106-0j3z16h6g",
+    "type": "Button",
+    "x": 1142,
+    "y": 479,
+    "width": 100,
+    "height": 43,
+    "props": {}
+  },
+  {
+    "id": "component-1763286984275-fb6apj9dw",
+    "type": "List",
+    "x": 104,
+    "y": 387,
+    "width": 578,
+    "height": 128,
+    "props": {}
+  },
+  {
+    "id": "component-1763286990259-5yugd82tt",
+    "type": "Text",
+    "x": 108,
+    "y": 285,
+    "width": 567,
+    "height": 88,
+    "props": {}
+  },
+  {
+    "id": "component-1763286999575-19dodv73z",
+    "type": "Table",
+    "x": 105,
+    "y": 571,
+    "width": 1315,
+    "height": 91,
+    "props": {}
+  },
+  {
+    "id": "component-1763287007495-sdotkh0hu",
+    "type": "Footer",
+    "x": 363.99999999999994,
+    "y": 691.9999999999974,
+    "width": 214.00000000000009,
+    "height": 49.999999999999794,
+    "props": {}
+  },
+  {
+    "id": "component-1763287020228-o5m7fw4v6",
+    "type": "Footer",
+    "x": 617,
+    "y": 695,
+    "width": 202,
+    "height": 42,
+    "props": {}
+  },
+  {
+    "id": "component-1763287023911-d624xm8pb",
+    "type": "Footer",
+    "x": 862,
+    "y": 696,
+    "width": 219,
+    "height": 41,
+    "props": {}
+  },
+  {
+    "id": "component-1763287029311-oydoh80na",
+    "type": "HorizontalLine",
+    "x": 92,
+    "y": 665,
+    "width": 1328,
+    "height": 23,
+    "props": {}
+  }
+]

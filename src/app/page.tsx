@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { PaletteSidebar, Toolbar, CanvasContainer } from '@/components';
+import { PaletteSidebar, Toolbar, CanvasContainer, ChatPanel } from '@/components';
 import { PlacedComponent, ComponentType, Mode } from '@/types/types';
 import type { KonvaStage } from '@/types/konva';
 import { WireframeGenerator, SVGExporter, PNGExporter } from '@/lib/wireframe';
@@ -174,6 +174,7 @@ export default function Home() {
           onResize={handleResize}
           onStageRef={handleStageRef}
         />
+        <ChatPanel />
       </div>
     </div>
   );

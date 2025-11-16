@@ -8,6 +8,7 @@ export { default as PlacedComponentShape } from './canvas/PlacedComponentShape';
 export { default as DraftBox } from './canvas/DraftBox';
 export { default as PaletteSidebar } from './sidebar/PaletteSidebar';
 export { default as Toolbar } from './toolbar/Toolbar';
+export { default as ChatPanel } from './chat/ChatPanel';
 
 // Component Manager and Registry (for extensibility)
 export { componentManager } from './manager/ComponentManager';

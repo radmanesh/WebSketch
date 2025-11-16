@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Rect, Text, Group, Line, Path, Circle } from 'react-konva';
-import Konva from 'konva';
+import type { KonvaRect, KonvaGroup } from '@/types/konva';
 import { PlacedComponent, ComponentType } from '@/types/types';
 
 interface PlacedComponentShapeProps {
@@ -11,7 +11,7 @@ interface PlacedComponentShapeProps {
   onSelect: () => void;
   onMove: (id: string, x: number, y: number) => void;
   onResize: (id: string, width: number, height: number, x: number, y: number) => void;
-  shapeRef?: React.MutableRefObject<Konva.Rect | null>;
+  shapeRef?: React.MutableRefObject<KonvaRect | null>;
 }
 
 // Components that should have borders
@@ -67,9 +67,9 @@ export default function PlacedComponentShape({
   onResize,
   shapeRef,
 }: PlacedComponentShapeProps) {
-  const localRectRef = useRef<Konva.Rect | null>(null);
+  const localRectRef = useRef<KonvaRect | null>(null);
   const rectRef = shapeRef || localRectRef;
-  const groupRef = useRef<Konva.Group | null>(null);
+  const groupRef = useRef<KonvaGroup | null>(null);
 
   useEffect(() => {
     if (rectRef.current) {

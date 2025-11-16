@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Rect, Transformer } from 'react-konva';
-import Konva from 'konva';
+import type { KonvaStage, KonvaRect, KonvaTransformer, KonvaEventObject } from '@/types/konva';
 import { PlacedComponent, Mode } from '@/types/types';
 import PlacedComponentShape from './PlacedComponentShape';
 
@@ -14,7 +14,7 @@ interface CanvasContainerProps {
   onSelectComponent: (id: string | null) => void;
   onMove: (id: string, x: number, y: number) => void;
   onResize: (id: string, width: number, height: number, x: number, y: number) => void;
-  onStageRef?: (stage: Konva.Stage | null) => void;
+  onStageRef?: (stage: KonvaStage | null) => void;
 }
 
 export default function CanvasContainer({
@@ -32,9 +32,9 @@ export default function CanvasContainer({
   const [draftBox, setDraftBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const transformerRef = useRef<Konva.Transformer>(null);
-  const selectedShapeRef = useRef<Konva.Rect | null>(null);
-  const stageRef = useRef<Konva.Stage | null>(null);
+  const transformerRef = useRef<KonvaTransformer>(null);
+  const selectedShapeRef = useRef<KonvaRect | null>(null);
+  const stageRef = useRef<KonvaStage | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && containerRef.current) {
@@ -64,7 +64,7 @@ export default function CanvasContainer({
     }
   }, [onStageRef]);
 
-  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
     if (mode !== 'draw') return;
 
     const stage = e.target.getStage();
@@ -78,7 +78,7 @@ export default function CanvasContainer({
     setDraftBox({ x: pos.x, y: pos.y, width: 0, height: 0 });
   };
 
-  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleMouseMove = (e: KonvaEventObject<MouseEvent>) => {
     if (!isDrawing || mode !== 'draw') return;
 
     const stage = e.target.getStage();
@@ -110,7 +110,7 @@ export default function CanvasContainer({
     setDraftBox(null);
   };
 
-  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
     if (mode === 'select') {
       const clickedOnEmpty = e.target === e.target.getStage();
       if (clickedOnEmpty) {

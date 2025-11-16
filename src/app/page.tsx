@@ -5,7 +5,7 @@ import PaletteSidebar from '@/components/PaletteSidebar';
 import Toolbar from '@/components/Toolbar';
 import CanvasContainer from '@/components/CanvasContainer';
 import { PlacedComponent, ComponentType, Mode } from '@/types/types';
-import Konva from 'konva';
+import type { KonvaStage } from '@/types/konva';
 import { WireframeGenerator, SVGExporter, PNGExporter } from '@/lib/wireframe';
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('select');
   const [currentType, setCurrentType] = useState<ComponentType>('Container');
-  const stageRef = useRef<Konva.Stage | null>(null);
+  const stageRef = useRef<KonvaStage | null>(null);
 
   const addComponent = (type: ComponentType, box: { x: number; y: number; width: number; height: number }) => {
     const id = `component-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -147,7 +147,7 @@ export default function Home() {
     }
   };
 
-  const handleStageRef = (stage: Konva.Stage | null) => {
+  const handleStageRef = (stage: KonvaStage | null) => {
     stageRef.current = stage;
   };
 

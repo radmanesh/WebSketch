@@ -7,6 +7,8 @@ interface ToolbarProps {
   onClearAll: () => void;
   onExportJSON: () => void;
   onImportJSON: (json: string) => void;
+  onExportPNG?: () => void;
+  onExportSVG?: () => void;
   hasSelection: boolean;
 }
 
@@ -17,6 +19,8 @@ export default function Toolbar({
   onClearAll,
   onExportJSON,
   onImportJSON,
+  onExportPNG,
+  onExportSVG,
   hasSelection,
 }: ToolbarProps) {
   const handleImport = () => {
@@ -27,7 +31,7 @@ export default function Toolbar({
   };
 
   return (
-    <div className="h-14 bg-white border-b border-gray-300 px-4 flex items-center gap-2">
+    <div className="h-14 bg-white border-b border-gray-300 px-4 flex items-center gap-2 overflow-x-auto">
       <button
         onClick={() => onSetMode('select')}
         className={`px-4 py-2 rounded ${
@@ -79,6 +83,23 @@ export default function Toolbar({
       >
         Import JSON
       </button>
+      <div className="w-px h-8 bg-gray-300 mx-2" />
+      {onExportPNG && (
+        <button
+          onClick={onExportPNG}
+          className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600"
+        >
+          Generate PNG
+        </button>
+      )}
+      {onExportSVG && (
+        <button
+          onClick={onExportSVG}
+          className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600"
+        >
+          Generate SVG
+        </button>
+      )}
     </div>
   );
 }

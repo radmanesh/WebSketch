@@ -1,4 +1,15 @@
-export type ComponentType = 'Container' | 'Button' | 'Input' | 'ImagePlaceholder';
+export type ComponentType =
+  | 'Container'
+  | 'Button'
+  | 'Input'
+  | 'ImagePlaceholder'
+  | 'Text'
+  | 'HorizontalLine'
+  | 'Heading'
+  | 'Footer'
+  | 'NavigationBox'
+  | 'List'
+  | 'Table';
 
 export interface PlacedComponent {
   id: string;

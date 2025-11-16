@@ -14,6 +14,7 @@ interface CanvasContainerProps {
   onSelectComponent: (id: string | null) => void;
   onMove: (id: string, x: number, y: number) => void;
   onResize: (id: string, width: number, height: number, x: number, y: number) => void;
+  onStageRef?: (stage: Konva.Stage | null) => void;
 }
 
 export default function CanvasContainer({
@@ -24,6 +25,7 @@ export default function CanvasContainer({
   onSelectComponent,
   onMove,
   onResize,
+  onStageRef,
 }: CanvasContainerProps) {
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [isDrawing, setIsDrawing] = useState(false);
@@ -32,6 +34,7 @@ export default function CanvasContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectedShapeRef = useRef<Konva.Rect | null>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && containerRef.current) {
@@ -53,6 +56,13 @@ export default function CanvasContainer({
       transformerRef.current.getLayer()?.batchDraw();
     }
   }, [selectedId]);
+
+  useEffect(() => {
+    if (onStageRef) {
+      onStageRef(stageRef.current);
+      return () => onStageRef(null);
+    }
+  }, [onStageRef]);
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (mode !== 'draw') return;
@@ -112,6 +122,7 @@ export default function CanvasContainer({
   return (
     <div ref={containerRef} className="flex-1 bg-white overflow-hidden">
       <Stage
+        ref={stageRef}
         width={dimensions.width}
         height={dimensions.height}
         onMouseDown={handleMouseDown}
@@ -140,10 +151,11 @@ export default function CanvasContainer({
               y={draftBox.y}
               width={draftBox.width}
               height={draftBox.height}
-              fill="rgba(0, 123, 255, 0.2)"
-              stroke="rgb(0, 123, 255)"
+              fill="rgba(0, 123, 255, 0.15)"
+              stroke="rgba(0, 123, 255, 0.6)"
               strokeWidth={2}
               dash={[5, 5]}
+              opacity={0.7}
             />
           )}
 

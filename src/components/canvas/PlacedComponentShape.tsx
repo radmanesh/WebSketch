@@ -57,29 +57,36 @@ export default function PlacedComponentShape({
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
 
-    // Get the current group position before resetting
+    // Get the current node position (may have changed during transform, especially when resizing from top/left)
+    const nodeX = node.x();
+    const nodeY = node.y();
+
+    // Get the current group position
     const currentGroupX = group.x();
     const currentGroupY = group.y();
 
-    // Reset scale to 1
-    node.scaleX(1);
-    node.scaleY(1);
-
+    // Calculate new dimensions
     // For HorizontalLine, enforce minimum height of 2px
     const minHeight = component.type === 'HorizontalLine' ? 2 : 20;
     const newWidth = Math.max(20, node.width() * scaleX);
     const newHeight = Math.max(minHeight, node.height() * scaleY);
 
-    // Ensure the node's position within the group stays at 0,0
+    // Calculate the new group position
+    // When resizing from top/left, the node's position changes to maintain the anchor point
+    // We need to adjust the group position to compensate
+    const newGroupX = currentGroupX + nodeX;
+    const newGroupY = currentGroupY + nodeY;
+
+    // Reset node scale and position
+    node.scaleX(1);
+    node.scaleY(1);
     node.position({ x: 0, y: 0 });
 
-    // Ensure the group position hasn't been affected by transformer
-    if (Math.abs(group.x() - currentGroupX) > 0.1 || Math.abs(group.y() - currentGroupY) > 0.1) {
-      group.position({ x: currentGroupX, y: currentGroupY });
-    }
+    // Update group position to account for the node's position change
+    group.position({ x: newGroupX, y: newGroupY });
 
-    // Update with the current group position (which might have been adjusted by transformer)
-    onResize(component.id, newWidth, newHeight, currentGroupX, currentGroupY);
+    // Update component with new dimensions and position
+    onResize(component.id, newWidth, newHeight, newGroupX, newGroupY);
   };
 
   // Get renderer for component type

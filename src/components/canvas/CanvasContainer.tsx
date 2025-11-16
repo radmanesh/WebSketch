@@ -1,10 +1,11 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Transformer } from 'react-konva';
+import { Stage, Layer, Transformer } from 'react-konva';
 import type { KonvaStage, KonvaRect, KonvaTransformer, KonvaEventObject } from '@/types/konva';
 import { PlacedComponent, Mode } from '@/types/types';
 import PlacedComponentShape from './PlacedComponentShape';
+import DraftBox from './DraftBox';
 
 interface CanvasContainerProps {
   components: PlacedComponent[];
@@ -146,21 +147,16 @@ export default function CanvasContainer({
 
           {/* Render draft box when drawing */}
           {draftBox && mode === 'draw' && (
-            <Rect
+            <DraftBox
               x={draftBox.x}
               y={draftBox.y}
               width={draftBox.width}
               height={draftBox.height}
-              fill="rgba(0, 123, 255, 0.15)"
-              stroke="rgba(0, 123, 255, 0.6)"
-              strokeWidth={2}
-              dash={[5, 5]}
-              opacity={0.7}
             />
           )}
 
           {/* Transformer for selected component */}
-          {selectedId && mode === 'select' && <Transformer ref={transformerRef} />}
+          {selectedId && mode === 'select' && <Transformer ref={transformerRef} rotateEnabled={false} />}
         </Layer>
       </Stage>
     </div>

@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import PaletteSidebar from '@/components/PaletteSidebar';
-import Toolbar from '@/components/Toolbar';
-import CanvasContainer from '@/components/CanvasContainer';
+import { PaletteSidebar, Toolbar, CanvasContainer } from '@/components';
 import { PlacedComponent, ComponentType, Mode } from '@/types/types';
 import type { KonvaStage } from '@/types/konva';
 import { WireframeGenerator, SVGExporter, PNGExporter } from '@/lib/wireframe';

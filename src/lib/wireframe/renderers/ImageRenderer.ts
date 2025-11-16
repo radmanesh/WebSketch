@@ -9,20 +9,18 @@ export class ImageRenderer extends BaseRenderer {
     const { width, height } = component;
     const elements: WireframeElement[] = [];
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const xSize = Math.min(width, height) * 0.3;
-
-    // X mark - two diagonal lines
+    // X mark - two full corner-to-corner diagonal lines
     elements.push(
+      // Diagonal from top-left to bottom-right
       this.createLine(
-        [centerX - xSize, centerY - xSize, centerX + xSize, centerY + xSize],
+        [0, 0, width, height],
         config,
         3,
         config.strokeColor
       ),
+      // Diagonal from top-right to bottom-left
       this.createLine(
-        [centerX - xSize, centerY + xSize, centerX + xSize, centerY - xSize],
+        [width, 0, 0, height],
         config,
         3,
         config.strokeColor

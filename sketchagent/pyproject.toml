@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "sketchagent"
+version = "0.1.0"
+description = "A2A Agent for WebSketch modifications using LangGraph"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+langchain = "^0.3.0"
+langchain-openai = "^0.2.0"
+langgraph = "^0.2.0"
+pydantic = "^2.9.0"
+redis = "^5.2.0"
+python-dotenv = "^1.0.0"
+structlog = "^24.4.0"
+tenacity = "^9.0.0"
+python-multipart = "^0.0.9"
+sse-starlette = "^2.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+black = "^24.8.0"
+ruff = "^0.6.0"
+mypy = "^1.11.0"
+httpx = "^0.27.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+

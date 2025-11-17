@@ -19,7 +19,7 @@ services:
       context: ./sketchagent
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "3000:3000"
     environment:
       - REDIS_URL=redis://redis:6379
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -27,7 +27,7 @@ services:
       - LOG_LEVEL=INFO
       - LOG_JSON=false
       - API_KEY=${API_KEY:-}
-      - CORS_ORIGINS=http://localhost:3000
+      - CORS_ORIGINS=http://localhost:8000
     volumes:
       - ./sketchagent:/app
     depends_on:
@@ -40,9 +40,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "8000:8000"
     environment:
-      - NEXT_PUBLIC_AGENT_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_AGENT_API_URL=http://localhost:3000
     # For development, uncomment volumes below and comment out the build
     # volumes:
     #   - ./frontend:/app

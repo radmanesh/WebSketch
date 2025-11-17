@@ -1,0 +1,258 @@
+# WebSketch SketchAgent - AI Assistant Rules
+
+## ⚠️ IMPORTANT: Environment Setup
+
+**ALWAYS use the mamba environment named `sketchagent` when working with this project.**
+
+Before running any commands or making changes:
+```bash
+# Activate the mamba environment
+mamba activate sketchagent
+
+# Verify you're in the correct environment
+which python  # Should point to the sketchagent environment
+```
+
+All Poetry commands, Python scripts, and development tools should be run within this environment. Never use the system Python or other environments.
+
+## Technology Stack
+- **Language**: Python 3.12
+- **Framework**: FastAPI
+- **AI Framework**: LangChain 0.3.0 & LangGraph 0.2.0
+- **State Management**: Redis
+- **Validation**: Pydantic 2.9.0
+- **Dependency Management**: Poetry
+- **Code Quality**: Black, Ruff, MyPy
+- **Logging**: Structlog
+- **Async**: asyncio with FastAPI async endpoints
+
+## Project Structure
+
+```
+sketchagent/
+├── app/
+│   ├── agent/            # LangGraph agent implementation
+│   │   ├── graph.py      # Main agent graph
+│   │   ├── state.py      # Agent state definitions
+│   │   └── nodes/        # Agent node implementations
+│   ├── api/              # FastAPI routes and dependencies
+│   ├── schemas/          # Pydantic models
+│   ├── services/         # Business logic services
+│   │   ├── llm_service.py    # LLM integration
+│   │   └── redis_service.py  # Redis operations
+│   ├── tools/            # Agent tools
+│   ├── utils/            # Utility functions
+│   ├── config.py         # Configuration management
+│   └── main.py           # FastAPI application entry point
+├── data/                 # Test data and examples
+├── tests/                # Test files
+└── pyproject.toml        # Poetry configuration
+```
+
+## Coding Standards
+
+### Python Style
+- **Line Length**: 100 characters (configured in Black and Ruff)
+- **Formatter**: Black (run `poetry run black .`)
+- **Linter**: Ruff (run `poetry run ruff check .`)
+- **Type Checker**: MyPy (run `poetry run mypy app`)
+- **Target Version**: Python 3.12
+
+### Code Formatting
+```bash
+# IMPORTANT: Activate mamba environment first!
+mamba activate sketchagent
+
+# Before committing, run:
+poetry run black .
+poetry run ruff check . --fix
+poetry run mypy app
+```
+
+### Type Hints
+- Use type hints for all function parameters and return types
+- Use `typing` module for complex types (Optional, List, Dict, etc.)
+- Use Pydantic models for data validation
+- Prefer `list[Type]` over `List[Type]` (Python 3.9+ syntax)
+
+### Async/Await
+- Use `async def` for FastAPI route handlers
+- Use `await` for async operations (LLM calls, Redis operations)
+- Use `asyncio.gather()` for concurrent operations when appropriate
+- Handle async context managers properly
+
+### Pydantic Models
+- Define schemas in `app/schemas/`
+- Use Pydantic v2 syntax
+- Add field descriptions for API documentation
+- Use validators when needed
+- Export schemas for use in routes
+
+Example:
+```python
+from pydantic import BaseModel, Field
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="Message role: user, assistant, or system")
+    content: str = Field(..., description="Message content")
+```
+
+### FastAPI Patterns
+- Use dependency injection for shared resources (Redis, LLM service)
+- Define routes in `app/api/routes.py`
+- Use Pydantic models for request/response validation
+- Add proper status codes and error handling
+- Use streaming responses for long-running operations (SSE)
+
+### LangGraph Patterns
+- Define agent state in `app/agent/state.py`
+- Implement nodes in `app/agent/nodes/`
+- Build graph in `app/agent/graph.py`
+- Use proper state management and transitions
+- Handle errors gracefully in nodes
+
+### Redis Operations
+- Use `app/services/redis_service.py` for Redis operations
+- Store session state as JSON
+- Handle connection errors gracefully
+- Use proper key naming conventions
+- Set appropriate TTLs for session data
+
+### Logging
+- Use structlog for structured logging
+- Log at appropriate levels (DEBUG, INFO, WARNING, ERROR)
+- Include context in log messages
+- Use JSON logging in production (configurable)
+
+### Error Handling
+- Use custom exceptions in `app/utils/errors.py`
+- Return proper HTTP status codes
+- Provide meaningful error messages
+- Log errors with context
+- Handle LLM API errors gracefully (rate limits, timeouts)
+
+## Common Patterns
+
+### FastAPI Route
+```python
+from fastapi import APIRouter, Depends, HTTPException
+from app.schemas.api import ChatRequest, ChatResponse
+from app.services.llm_service import LLMService
+
+router = APIRouter()
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(
+    request: ChatRequest,
+    llm_service: LLMService = Depends(get_llm_service),
+):
+    try:
+        # Implementation
+        return ChatResponse(...)
+    except Exception as e:
+        logger.error("Chat error", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+```
+
+### LangGraph Node
+```python
+from langgraph.graph import StateGraph
+from app.agent.state import AgentState
+
+async def my_node(state: AgentState) -> dict:
+    """Node description."""
+    logger.info("Processing node", state=state)
+    # Node logic
+    return {"key": "value"}
+```
+
+### Redis Service Usage
+```python
+from app.services.redis_service import RedisService
+
+async def get_session(session_id: str, redis: RedisService):
+    data = await redis.get(f"session:{session_id}")
+    if not data:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return data
+```
+
+## Environment Variables
+
+Required environment variables (documented in `.env.example`):
+- `OPENAI_API_KEY`: OpenAI API key
+- `OPENAI_MODEL`: Model to use (default: gpt-4o-mini)
+- `REDIS_URL`: Redis connection URL
+- `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
+- `LOG_JSON`: Whether to use JSON logging (true/false)
+- `API_KEY`: Optional API key for authentication
+- `CORS_ORIGINS`: Allowed CORS origins
+
+## API Endpoints
+
+- `POST /api/v1/chat` - Non-streaming chat endpoint
+- `POST /api/v1/chat/stream` - Streaming chat endpoint (SSE)
+- `POST /api/v1/session` - Create new session
+- `GET /api/v1/session/{session_id}` - Get session state
+- `DELETE /api/v1/session/{session_id}` - Delete session
+- `GET /health` - Health check endpoint
+
+## Best Practices
+
+### Agent Development
+- Keep nodes focused and single-purpose
+- Use clear state transitions
+- Handle edge cases in nodes
+- Log important state changes
+- Test agent graph execution
+
+### Service Layer
+- Keep business logic in services, not in routes
+- Use dependency injection for testability
+- Handle service errors appropriately
+- Cache expensive operations when possible
+
+### Testing
+- Write tests in `tests/` directory
+- Use pytest and pytest-asyncio
+- Mock external services (OpenAI, Redis)
+- Test error cases and edge cases
+
+### Performance
+- Use async operations for I/O-bound tasks
+- Cache LLM responses when appropriate
+- Optimize Redis queries
+- Use streaming for long-running operations
+
+## When Adding New Features
+
+1. **Determine location**: Route, service, tool, or agent node?
+2. **Define schemas**: Add Pydantic models in `app/schemas/`
+3. **Update routes**: Add endpoints in `app/api/routes.py`
+4. **Implement logic**: Add services or tools as needed
+5. **Update agent**: Modify graph or nodes if needed
+6. **Test locally**: Activate mamba environment (`mamba activate sketchagent`) and run with `poetry run uvicorn app.main:app --reload`
+7. **Run linters**: Black, Ruff, MyPy before committing
+8. **Update docs**: Update README.md if API changes
+
+## Common Pitfalls to Avoid
+
+- ❌ **CRITICAL**: Don't work outside the `sketchagent` mamba environment
+- ❌ Don't forget to await async operations
+- ❌ Don't use blocking operations in async functions
+- ❌ Don't forget to handle Redis connection errors
+- ❌ Don't expose sensitive data in error messages
+- ❌ Don't forget to validate input with Pydantic
+- ❌ Don't forget to run formatters/linters before committing
+- ❌ Don't hardcode configuration values (use environment variables)
+
+## Questions to Consider
+
+- Is this an async operation? (use async/await)
+- Does this need to be in the agent graph? (use nodes)
+- Is this a reusable operation? (create a service or tool)
+- Are the Pydantic schemas correct?
+- Is error handling appropriate?
+- Are logs helpful for debugging?
+- Does this need to be cached in Redis?
+

@@ -1,0 +1,114 @@
+# WebSketch - Repository-Wide AI Assistant Rules
+
+## Project Overview
+WebSketch is a web-based wireframe sketch tool with AI-powered layout modification capabilities. It's a monorepo containing:
+- `frontend/`: Next.js 16 frontend application
+- `sketchagent/`: Python FastAPI agent service using LangGraph
+- Docker Compose orchestration for all services
+
+## Architecture Principles
+
+### Service Communication
+- Frontend communicates with sketchagent via REST API at `/api/v1/*`
+- Sketchagent uses Redis for session state management
+- All services are containerized and orchestrated via docker-compose.yml
+- Frontend runs on port 3000, sketchagent on port 8000, Redis on port 6379
+
+### Code Organization
+- Keep frontend and backend concerns separated
+- Follow the existing folder structure
+- Maintain clear API contracts between services
+- Use TypeScript for frontend, Python for backend
+
+## General Coding Standards
+
+### File Naming
+- Use kebab-case for files and directories
+- Use PascalCase for React components
+- Use camelCase for variables and functions
+- Use UPPER_SNAKE_CASE for constants
+
+### Git Practices
+- Write clear, descriptive commit messages
+- Keep commits focused and atomic
+- Update relevant documentation when making changes
+
+### Documentation
+- Update README.md when adding new features or changing setup
+- Document API changes in sketchagent/README.md
+- Keep FEATURES.md updated with new capabilities
+
+## Docker & Deployment
+
+### Docker Compose
+- All services are defined in docker-compose.yml
+- Use environment variables for configuration
+- Ensure health checks are properly configured
+- Volume mounts are configured for development
+
+### Environment Variables
+- Never commit `.env` files
+- Document required environment variables in README files
+- Use `.env.example` files as templates
+
+## Testing & Quality
+
+### Frontend
+- Run `npm run lint` before committing
+- Ensure TypeScript compiles without errors
+- Test in development mode before building
+
+### Backend
+- Run `poetry run black`, `poetry run ruff`, and `poetry run mypy` before committing
+- Follow Python type hints and Pydantic schemas
+- Test API endpoints manually or with pytest
+
+## Common Tasks
+
+### Adding a New Feature
+1. Determine if it belongs in frontend or sketchagent
+2. Update relevant README files
+3. Update FEATURES.md if it's a user-facing feature
+4. Test locally with docker-compose
+5. Ensure environment variables are documented
+
+### Modifying API Contracts
+1. Update Pydantic schemas in `sketchagent/app/schemas/`
+2. Update frontend API client in `frontend/src/lib/api/`
+3. Update API documentation in sketchagent/README.md
+4. Test both services together
+
+## Technology Stack Reminders
+
+### Frontend Stack
+- Next.js 16 with App Router
+- React 19
+- TypeScript (strict mode)
+- Tailwind CSS 4
+- React-Konva for canvas rendering
+- Zustand for state management
+
+### Backend Stack
+- Python 3.12
+- FastAPI
+- LangChain & LangGraph
+- Redis for state management
+- Poetry for dependency management
+- Pydantic for data validation
+
+## When Making Changes
+
+1. **Always check** if changes affect the Docker setup
+2. **Always verify** environment variables are properly configured
+3. **Always test** both services together when modifying API contracts
+4. **Always update** relevant documentation
+5. **Always run** linters/formatters before committing
+
+## Questions to Consider
+
+- Does this change require updates to docker-compose.yml?
+- Are there environment variables that need to be documented?
+- Does this affect the API contract between frontend and backend?
+- Should FEATURES.md or README files be updated?
+- Are there any breaking changes that need migration steps?
+

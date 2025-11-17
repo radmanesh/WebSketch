@@ -6,14 +6,10 @@ WORKDIR /app
 RUN pip install poetry==1.8.0
 
 # Copy dependency files
-COPY pyproject.toml ./
+COPY requirements.txt ./
 
-# Configure Poetry
-RUN poetry config virtualenvs.create false
-
-# Install dependencies
-RUN poetry install --no-dev --no-interaction --no-ansi || \
-    (poetry lock --no-update && poetry install --no-dev --no-interaction --no-ansi)
+# Install dependencies using pip
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app ./app

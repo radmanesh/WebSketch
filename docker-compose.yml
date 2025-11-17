@@ -42,11 +42,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_AGENT_API_URL=http://sketchagent:8000
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - NEXT_PUBLIC_AGENT_API_URL=http://localhost:8000
+    # For development, uncomment volumes below and comment out the build
+    # volumes:
+    #   - ./frontend:/app
+    #   - /app/node_modules
+    #   - /app/.next
     depends_on:
       - sketchagent
     restart: unless-stopped

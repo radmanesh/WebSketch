@@ -1,0 +1,190 @@
+# WebSketch Frontend - AI Assistant Rules
+
+## Technology Stack
+- **Framework**: Next.js 16 with App Router
+- **React**: Version 19
+- **TypeScript**: Strict mode enabled
+- **Styling**: Tailwind CSS 4
+- **Canvas**: React-Konva (Konva wrapper for React)
+- **State Management**: Zustand
+- **Drag & Drop**: @dnd-kit (available but not always used)
+- **Validation**: Zod
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── app/              # Next.js App Router pages
+│   ├── components/       # React components
+│   │   ├── canvas/       # Canvas-related components
+│   │   ├── chat/         # Chat interface components
+│   │   ├── renderers/    # Component renderers
+│   │   ├── sidebar/      # Sidebar components
+│   │   └── toolbar/      # Toolbar components
+│   ├── lib/              # Utility libraries
+│   │   ├── api/          # API client code
+│   │   └── wireframe/    # Wireframe generation logic
+│   └── types/            # TypeScript type definitions
+├── public/               # Static assets
+└── package.json
+```
+
+## Coding Standards
+
+### TypeScript
+- Use strict TypeScript mode
+- Define types in `src/types/` directory
+- Use interfaces for component props
+- Prefer type inference where possible, but be explicit for public APIs
+- Use `@/` path alias for imports (configured in tsconfig.json)
+
+### React Components
+- Use functional components with hooks
+- Use `'use client'` directive for client components (required for React-Konva)
+- Keep components focused and single-purpose
+- Extract reusable logic into custom hooks
+- Use proper TypeScript types for all props
+
+### Component Patterns
+```typescript
+// Component structure
+'use client';
+
+import { useState, useEffect } from 'react';
+import type { ComponentProps } from '@/types/types';
+
+interface MyComponentProps {
+  // Define props with clear types
+}
+
+export default function MyComponent({ prop1, prop2 }: MyComponentProps) {
+  // Component logic
+  return (
+    // JSX
+  );
+}
+```
+
+### React-Konva Specific
+- Always use `'use client'` for components using React-Konva
+- Use refs for Konva objects (Stage, Layer, Transformer, etc.)
+- Handle Konva events properly (use KonvaEventObject types)
+- Normalize coordinates when handling drag operations
+- Use Transformer for resizing selected components
+
+### State Management
+- Use Zustand for global state if needed
+- Prefer local state with useState for component-specific state
+- Lift state up when multiple components need it
+- Use callbacks for parent-child communication
+
+### API Integration
+- API client is in `src/lib/api/client.ts`
+- Use async/await for API calls
+- Handle errors gracefully
+- Use streaming for chat endpoints when available
+- Type API responses with TypeScript interfaces
+
+### Styling
+- Use Tailwind CSS utility classes
+- Follow mobile-first responsive design
+- Use Tailwind's design tokens (colors, spacing, etc.)
+- Avoid inline styles unless necessary for dynamic values
+- Use CSS modules or global styles for complex animations
+
+### File Organization
+- One component per file
+- Co-locate related components in the same directory
+- Export components from `components/index.ts` if needed
+- Keep utility functions in `src/lib/`
+
+## Common Patterns
+
+### Canvas Operations
+```typescript
+// Normalize coordinates for drag operations
+const normalizeBox = (x1: number, y1: number, x2: number, y2: number) => {
+  return {
+    x: Math.min(x1, x2),
+    y: Math.min(y1, y2),
+    width: Math.abs(x2 - x1),
+    height: Math.abs(y2 - y1),
+  };
+};
+```
+
+### Event Handlers
+- Use proper TypeScript types for event handlers
+- Prevent default behavior when necessary
+- Use useCallback for handlers passed to child components
+- Clean up event listeners in useEffect cleanup
+
+### Type Definitions
+- Define types in `src/types/` directory
+- Use descriptive names (e.g., `PlacedComponent`, `ComponentType`)
+- Export types that are used across multiple files
+- Use discriminated unions for variant types
+
+## Best Practices
+
+### Performance
+- Use React.memo for expensive components
+- Use useMemo and useCallback appropriately
+- Avoid unnecessary re-renders
+- Optimize Konva rendering (limit Layer updates)
+
+### Error Handling
+- Use try-catch for async operations
+- Display user-friendly error messages
+- Log errors appropriately
+- Handle edge cases (empty states, loading states)
+
+### Accessibility
+- Use semantic HTML elements
+- Add proper ARIA labels where needed
+- Ensure keyboard navigation works
+- Maintain proper focus management
+
+### Code Quality
+- Run `npm run lint` before committing
+- Fix all TypeScript errors
+- Keep components under 200 lines when possible
+- Extract complex logic into separate functions or hooks
+
+## When Adding New Features
+
+1. **Determine location**: Should it be a new component, or extend existing?
+2. **Define types**: Add TypeScript types in `src/types/` if needed
+3. **Update API client**: If backend changes, update `src/lib/api/client.ts`
+4. **Test locally**: Run `npm run dev` and test thoroughly
+5. **Check linting**: Run `npm run lint` and fix issues
+
+## Common Pitfalls to Avoid
+
+- ❌ Don't use React-Konva without `'use client'`
+- ❌ Don't forget to normalize coordinates in drag operations
+- ❌ Don't use server components with Konva
+- ❌ Don't forget to clean up event listeners
+- ❌ Don't mutate state directly (use setState or state updater functions)
+- ❌ Don't forget to handle loading and error states
+
+## API Integration Notes
+
+- Base URL: `http://localhost:8000` (development)
+- Use `NEXT_PUBLIC_AGENT_API_URL` environment variable
+- Endpoints:
+  - `POST /api/v1/chat` - Non-streaming chat
+  - `POST /api/v1/chat/stream` - Streaming chat
+  - `POST /api/v1/session` - Create session
+  - `GET /api/v1/session/{id}` - Get session
+  - `DELETE /api/v1/session/{id}` - Delete session
+
+## Questions to Consider
+
+- Is this a client component? (needs `'use client'`)
+- Does this interact with Konva? (needs proper refs and types)
+- Does this need to call the API? (use API client)
+- Are the TypeScript types correct?
+- Is the component accessible and performant?
+

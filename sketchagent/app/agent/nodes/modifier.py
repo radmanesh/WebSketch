@@ -6,6 +6,7 @@ from ...schemas.sketch import SketchModification, ComponentOperation
 from ...services.llm_service import LLMService
 from ...utils.logger import get_logger
 from ...utils.errors import LLMError
+from ...utils.debug_logger import log_node_execution, log_state_snapshot, log_llm_request, log_llm_response
 
 logger = get_logger(__name__)
 
@@ -177,53 +178,62 @@ Analyze the user's request and generate the appropriate operations to modify the
 
 async def modify_node(state: AgentState, llm_service: LLMService) -> AgentState:
     """Generate modification operations from user intent"""
-    logger.info("Generating modifications", session_id=state["session_id"])
+    session_id = state.get("session_id")
+    logger.info("Generating modifications", session_id=session_id)
 
-    try:
-        system_prompt = get_system_prompt()
-        user_prompt = build_user_prompt(state)
-
-        # Call LLM
-        response_text = await llm_service.invoke(
-            system_prompt, user_prompt, state["session_id"]
-        )
-
-        # Parse JSON response
-        # Try to extract JSON from markdown code blocks if present
-        content = response_text
-        json_match = None
-        if "```" in content:
-            import re
-            json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
-            if json_match:
-                content = json_match.group(1)
-
-        # Parse JSON
+    with log_node_execution("modify", session_id):
+        log_state_snapshot(state, "before_modify", session_id)
         try:
-            parsed = json.loads(content)
-        except json.JSONDecodeError as e:
-            raise LLMError(f"Failed to parse JSON response: {str(e)}", state["session_id"])
+            system_prompt = get_system_prompt()
+            user_prompt = build_user_prompt(state)
 
-        # Validate and create modification
-        modification = SketchModification(**parsed)
-        operations = [
-            ComponentOperation(**op) if isinstance(op, dict) else op
-            for op in modification.operations
-        ]
+            log_llm_request(len(system_prompt), len(user_prompt), session_id)
 
-        state["modification"] = modification
-        state["operations"] = operations
-        state["step"] = "validate"
+            # Call LLM
+            response_text = await llm_service.invoke(
+                system_prompt, user_prompt, session_id
+            )
 
-        logger.info(
-            "Modification generated",
-            session_id=state["session_id"],
-            operation_count=len(operations),
-        )
-    except Exception as e:
-        logger.error("Modification generation failed", error=str(e), session_id=state["session_id"])
-        state["step"] = "error"
-        state["error"] = f"Modification generation failed: {str(e)}"
+            log_llm_response(len(response_text), session_id, has_json="{" in response_text)
+
+            # Parse JSON response
+            # Try to extract JSON from markdown code blocks if present
+            content = response_text
+            json_match = None
+            if "```" in content:
+                import re
+                json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+                if json_match:
+                    content = json_match.group(1)
+
+            # Parse JSON
+            try:
+                parsed = json.loads(content)
+            except json.JSONDecodeError as e:
+                raise LLMError(f"Failed to parse JSON response: {str(e)}", session_id)
+
+            # Validate and create modification
+            modification = SketchModification(**parsed)
+            operations = [
+                ComponentOperation(**op) if isinstance(op, dict) else op
+                for op in modification.operations
+            ]
+
+            state["modification"] = modification
+            state["operations"] = operations
+            state["step"] = "validate"
+
+            logger.info(
+                "Modification generated",
+                session_id=session_id,
+                operation_count=len(operations),
+            )
+            log_state_snapshot(state, "after_modify", session_id)
+        except Exception as e:
+            logger.error("Modification generation failed", error=str(e), session_id=session_id, exc_info=True)
+            state["step"] = "error"
+            state["error"] = f"Modification generation failed: {str(e)}"
+            log_state_snapshot(state, "modify_error", session_id)
 
     return state
 

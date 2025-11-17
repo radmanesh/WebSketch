@@ -11,6 +11,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from ..utils.logger import get_logger
 from ..utils.errors import LLMError
+from ..utils.debug_logger import log_llm_request, log_llm_response
 
 logger = get_logger(__name__)
 
@@ -41,17 +42,12 @@ class LLMService:
                 HumanMessage(content=user_prompt),
             ]
 
-            logger.debug(
-                "Invoking LLM",
-                session_id=session_id,
-                system_prompt_length=len(system_prompt),
-                user_prompt_length=len(user_prompt),
-            )
+            log_llm_request(len(system_prompt), len(user_prompt), session_id)
 
             response = await self.model.ainvoke(messages)
             content = response.content if hasattr(response, "content") else str(response)
 
-            logger.debug("LLM response received", session_id=session_id, response_length=len(content))
+            log_llm_response(len(content), session_id, has_json="{" in content)
 
             return content
         except Exception as e:

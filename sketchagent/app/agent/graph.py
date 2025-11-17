@@ -14,22 +14,45 @@ from ..utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def should_continue(state: AgentState) -> Literal["modify", "validate", "execute", "end"]:
-    """Determine next step based on current state"""
-    step = state.get("step", "analyze")
+def should_continue_after_analyze(state: AgentState) -> Literal["modify", "end"]:
+    """Determine next step after analyze node"""
+    if isinstance(state, dict):
+        step = state.get("step", "analyze")
+    else:
+        step = getattr(state, "step", "analyze")
 
     if step == "error":
         return "end"
-    elif step == "analyze":
-        return "modify"
-    elif step == "modify":
-        return "validate"
-    elif step == "validate":
-        return "execute"
-    elif step == "execute":
-        return "end"
+    return "modify"
+
+
+def should_continue_after_modify(state: AgentState) -> Literal["validate", "end"]:
+    """Determine next step after modify node"""
+    if isinstance(state, dict):
+        step = state.get("step", "modify")
     else:
+        step = getattr(state, "step", "modify")
+
+    if step == "error":
         return "end"
+    return "validate"
+
+
+def should_continue_after_validate(state: AgentState) -> Literal["execute", "end"]:
+    """Determine next step after validate node"""
+    if isinstance(state, dict):
+        step = state.get("step", "validate")
+    else:
+        step = getattr(state, "step", "validate")
+
+    if step == "error":
+        return "end"
+    return "execute"
+
+
+def should_continue_after_execute(state: AgentState) -> Literal["end"]:
+    """Determine next step after execute node"""
+    return "end"
 
 
 def create_agent_graph(llm_service: LLMService) -> StateGraph:
@@ -51,10 +74,10 @@ def create_agent_graph(llm_service: LLMService) -> StateGraph:
     # Set entry point
     workflow.set_entry_point("analyze")
 
-    # Add conditional edges
+    # Add conditional edges with node-specific routing functions
     workflow.add_conditional_edges(
         "analyze",
-        should_continue,
+        should_continue_after_analyze,
         {
             "modify": "modify",
             "end": END,
@@ -63,7 +86,7 @@ def create_agent_graph(llm_service: LLMService) -> StateGraph:
 
     workflow.add_conditional_edges(
         "modify",
-        should_continue,
+        should_continue_after_modify,
         {
             "validate": "validate",
             "end": END,
@@ -72,7 +95,7 @@ def create_agent_graph(llm_service: LLMService) -> StateGraph:
 
     workflow.add_conditional_edges(
         "validate",
-        should_continue,
+        should_continue_after_validate,
         {
             "execute": "execute",
             "end": END,
@@ -81,7 +104,7 @@ def create_agent_graph(llm_service: LLMService) -> StateGraph:
 
     workflow.add_conditional_edges(
         "execute",
-        should_continue,
+        should_continue_after_execute,
         {
             "end": END,
         },

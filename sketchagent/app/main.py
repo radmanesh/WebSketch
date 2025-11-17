@@ -9,6 +9,7 @@ from .utils.logger import setup_logging, get_logger
 from .services.redis_service import RedisService
 from .services.llm_service import LLMService
 from .api.routes import router, set_services
+from .api.debug_routes import router as debug_router, set_debug_services
 from .api.dependencies import verify_api_key
 
 # Setup logging
@@ -37,6 +38,7 @@ async def lifespan(app: FastAPI):
 
     # Set services in routes module to avoid circular import
     set_services(redis_service, llm_service)
+    set_debug_services(redis_service, llm_service)
 
     logger.info("Service started successfully")
     yield
@@ -65,6 +67,11 @@ app.add_middleware(
 
 # Include routers
 app.include_router(router)
+
+# Include debug router (only enabled in DEBUG mode)
+if settings.log_level.upper() == "DEBUG" or settings.debug_mode:
+    app.include_router(debug_router)
+    logger.info("Debug endpoints enabled")
 
 
 @app.get("/")

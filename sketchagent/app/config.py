@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
     log_json: bool = False
+    debug_mode: bool = Field(default=False, description="Enable debug mode with additional logging and endpoints")
 
     # CORS - stored as comma-separated string in env
     cors_origins_str: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")

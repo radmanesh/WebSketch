@@ -46,3 +46,23 @@ python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "error: Error handling tests",
+    "edge: Edge case tests",
+    "slow: Slow running tests",
+]
+

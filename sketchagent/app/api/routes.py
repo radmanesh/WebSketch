@@ -150,12 +150,39 @@ async def chat(
     try:
         result = await _process_chat_request(request, redis, llm)
         return result
+    except AgentError as e:
+        logger.error("Chat request failed", error=str(e), session_id=request.session_id or request.session_id)
+        # Return a valid ChatResponse with error information
+        # Fallback to current sketch if available
+        current_sketch = request.current_sketch
+        try:
+            if e.session_id:
+                session_data = await redis.get_session(e.session_id)
+                if session_data and session_data.get("current_sketch"):
+                    current_sketch = [
+                        PlacedComponent(**comp) for comp in session_data["current_sketch"]
+                    ]
+        except Exception:
+            pass  # Use request.current_sketch as fallback
+
+        return ChatResponse(
+            success=False,
+            modifiedSketch=current_sketch,
+            operations=[],
+            reasoning=f"Error: {str(e)}",
+            description=f"Request failed: {str(e)}",
+            sessionId=request.session_id or e.session_id or "",
+        )
     except Exception as e:
         logger.error("Chat request failed", error=str(e), session_id=request.session_id)
-        return ErrorResponse(
+        # Return a valid ChatResponse with error information
+        return ChatResponse(
             success=False,
-            error=str(e),
-            sessionId=request.session_id,
+            modifiedSketch=request.current_sketch,
+            operations=[],
+            reasoning=f"Error: {str(e)}",
+            description=f"Request failed: {str(e)}",
+            sessionId=request.session_id or "",
         )
 
 
@@ -281,10 +308,21 @@ async def _process_chat_request(
                 # Get the last node's state
                 node_names = list(state_dict.keys())
                 if node_names:
-                    final_state = state_dict[node_names[-1]]
+                    last_node = node_names[-1]
+                    final_state = state_dict.get(last_node)
+                    # Check for errors early
+                    if final_state and final_state.get("step") == "error":
+                        error_msg = final_state.get("error", "Unknown error")
+                        logger.error(
+                            "Agent graph error detected",
+                            error=error_msg,
+                            node=last_node,
+                            session_id=session_id,
+                        )
+                        # Don't break, let it finish to get final state
 
         if not final_state:
-            raise AgentError("Agent graph did not return a state")
+            raise AgentError("Agent graph did not return a state", session_id)
 
         # Check for errors
         if final_state.get("step") == "error":

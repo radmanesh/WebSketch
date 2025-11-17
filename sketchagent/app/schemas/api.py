@@ -1,7 +1,7 @@
 """API request/response models"""
 
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Annotated, Optional
+from pydantic import BaseModel, Field, ConfigDict
 from .sketch import PlacedComponent, SketchModification
 
 
@@ -15,60 +15,49 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     """Chat API request"""
     message: str = Field(..., description="User message")
-    current_sketch: list[PlacedComponent] = Field(..., alias="currentSketch", description="Current sketch state")
-    message_history: Optional[list[ChatMessage]] = Field(
-        None, alias="messageHistory", description="Previous conversation messages"
-    )
-    session_id: Optional[str] = Field(None, alias="sessionId", description="Session ID for state persistence")
+    current_sketch: Annotated[list[PlacedComponent], Field(..., alias="currentSketch", description="Current sketch state")]
+    message_history: Annotated[Optional[list[ChatMessage]], Field(None, alias="messageHistory", description="Previous conversation messages")] = None
+    session_id: Annotated[Optional[str], Field(None, alias="sessionId", description="Session ID for state persistence")] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ChatResponse(BaseModel):
     """Chat API response"""
     success: bool = Field(..., description="Whether the request was successful")
-    modified_sketch: list[PlacedComponent] = Field(..., alias="modifiedSketch", description="Modified sketch")
+    modified_sketch: Annotated[list[PlacedComponent], Field(..., alias="modifiedSketch", description="Modified sketch")]
     operations: list = Field(..., description="Operations that were applied")
     reasoning: str = Field(..., description="Reasoning for the modifications")
     description: str = Field(..., description="Human-readable description")
-    session_id: str = Field(..., alias="sessionId", description="Session ID")
+    session_id: Annotated[str, Field(..., alias="sessionId", description="Session ID")]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ErrorResponse(BaseModel):
     """Error response"""
     success: bool = Field(False, description="Always false for errors")
     error: str = Field(..., description="Error message")
-    session_id: Optional[str] = Field(None, alias="sessionId", description="Session ID if available")
+    session_id: Annotated[Optional[str], Field(None, alias="sessionId", description="Session ID if available")] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class SessionCreateResponse(BaseModel):
     """Session creation response"""
-    session_id: str = Field(..., alias="sessionId", description="Created session ID")
-    created_at: str = Field(..., alias="createdAt", description="Session creation timestamp")
+    session_id: Annotated[str, Field(..., alias="sessionId", description="Created session ID")]
+    created_at: Annotated[str, Field(..., alias="createdAt", description="Session creation timestamp")]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class SessionResponse(BaseModel):
     """Session state response"""
-    session_id: str = Field(..., alias="sessionId", description="Session ID")
-    created_at: str = Field(..., alias="createdAt", description="Creation timestamp")
-    updated_at: str = Field(..., alias="updatedAt", description="Last update timestamp")
-    current_sketch: Optional[list[PlacedComponent]] = Field(
-        None, alias="currentSketch", description="Current sketch state"
-    )
-    operation_history: Optional[list] = Field(
-        None, alias="operationHistory", description="History of operations for undo/redo"
-    )
+    session_id: Annotated[str, Field(..., alias="sessionId", description="Session ID")]
+    created_at: Annotated[str, Field(..., alias="createdAt", description="Creation timestamp")]
+    updated_at: Annotated[str, Field(..., alias="updatedAt", description="Last update timestamp")]
+    current_sketch: Annotated[Optional[list[PlacedComponent]], Field(None, alias="currentSketch", description="Current sketch state")] = None
+    operation_history: Annotated[Optional[list], Field(None, alias="operationHistory", description="History of operations for undo/redo")] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 

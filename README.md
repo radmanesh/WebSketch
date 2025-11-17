@@ -41,13 +41,14 @@ docker-compose up
 
 Services exposed:
 
-| Service    | Port | Description                |
-|------------|------|----------------------------|
-| Frontend   | 8000 | Next.js wireframe studio   |
-| SketchAgent| 3000 | FastAPI + LangGraph agent  |
-| Redis      | 6379 | Session store              |
+| Service    | Port | Description                                 |
+|------------|------|---------------------------------------------|
+| Frontend   | 8000 | Next.js wireframe studio (public)           |
+| SketchAgent| —    | FastAPI + LangGraph agent (internal port 3000)|
+| Redis      | 6379 | Session store                               |
 
 > Need detailed internals? See `sketchagent/ARCHITECTURE.md`.
+> Backend is reachable from other containers at `http://sketchagent:3000`.
 
 ### Development
 

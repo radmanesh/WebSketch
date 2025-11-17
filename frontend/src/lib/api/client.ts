@@ -5,10 +5,11 @@
 // Use window.location.origin in browser, fallback to env var or localhost
 const getAgentApiUrl = () => {
   if (typeof window !== 'undefined') {
-    // In browser, use same origin or env var
+    // In browser, prefer env var, fall back to localhost for local dev
     return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:3000';
   }
-  return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:3000';
+  // On server/in-container, default to docker service hostname
+  return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://sketchagent:3000';
 };
 
 const AGENT_API_URL = getAgentApiUrl();

@@ -18,8 +18,8 @@ services:
     build:
       context: ./sketchagent
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       - REDIS_URL=redis://redis:6379
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -42,7 +42,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - NEXT_PUBLIC_AGENT_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_AGENT_API_URL=http://sketchagent:3000
     # For development, uncomment volumes below and comment out the build
     # volumes:
     #   - ./frontend:/app

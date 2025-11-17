@@ -43,8 +43,8 @@ Services exposed:
 
 | Service    | Port | Description                |
 |------------|------|----------------------------|
-| Frontend   | 3000 | Next.js wireframe studio   |
-| SketchAgent| 8000 | FastAPI + LangGraph agent  |
+| Frontend   | 8000 | Next.js wireframe studio   |
+| SketchAgent| 3000 | FastAPI + LangGraph agent  |
 | Redis      | 6379 | Session store              |
 
 > Need detailed internals? See `sketchagent/ARCHITECTURE.md`.

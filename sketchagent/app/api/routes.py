@@ -23,31 +23,43 @@ from ..agent.state import AgentState
 from ..utils.logger import get_logger
 from ..utils.errors import AgentError
 from .dependencies import verify_api_key
-from ..main import redis_service, llm_service
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["agent"])
 
 
+# Services will be injected via dependency injection
+# These will be set by main.py after services are initialized
+_redis_service: Optional[RedisService] = None
+_llm_service: Optional[LLMService] = None
+
+
+def set_services(redis: RedisService, llm: LLMService) -> None:
+    """Set the service instances (called from main.py)"""
+    global _redis_service, _llm_service
+    _redis_service = redis
+    _llm_service = llm
+
+
 def get_redis_service() -> RedisService:
     """Dependency to get Redis service"""
-    if redis_service is None:
+    if _redis_service is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Redis service not initialized",
         )
-    return redis_service
+    return _redis_service
 
 
 def get_llm_service() -> LLMService:
     """Dependency to get LLM service"""
-    if llm_service is None:
+    if _llm_service is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="LLM service not initialized",
         )
-    return llm_service
+    return _llm_service
 
 
 @router.post("/session", response_model=SessionCreateResponse)

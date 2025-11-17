@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Line, Circle } from 'react-konva';
 import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
 
@@ -5,8 +6,8 @@ import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
  * Renders List component with wavy horizontal lines and circles
  */
 export class ListRenderer extends BaseCanvasRenderer {
-  render({ width, height, strokeColor }: CanvasRendererProps) {
-    const elements: JSX.Element[] = [];
+  render({ width, height, strokeColor }: CanvasRendererProps): ReactNode {
+    const elements: ReactNode[] = [];
     const lineSpacing = 25;
     const circleRadius = 4;
     const circleX = 15;

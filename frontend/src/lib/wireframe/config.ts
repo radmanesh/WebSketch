@@ -1,4 +1,5 @@
-import { WireframeConfig, ComponentType } from './types';
+import { ComponentType } from '@/types/types';
+import { WireframeConfig } from './types';
 
 /**
  * Components that should have borders in export

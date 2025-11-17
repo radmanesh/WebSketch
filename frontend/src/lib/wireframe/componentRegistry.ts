@@ -1,4 +1,5 @@
-import { ComponentType, IWireframeRenderer, PlacedComponent } from './types';
+import { ComponentType, PlacedComponent } from '@/types/types';
+import { IWireframeRenderer } from './types';
 import { TextRenderer } from './renderers/TextRenderer';
 import { HeadingRenderer } from './renderers/HeadingRenderer';
 import { ImageRenderer } from './renderers/ImageRenderer';

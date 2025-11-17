@@ -1,7 +1,7 @@
-import { PlacedComponent } from '@/types/types';
+import { PlacedComponent, ComponentType } from '@/types/types';
 import { componentRegistry } from './componentRegistry';
-import { getRendererConfig, defaultWireframeConfig, WireframeConfig, hasBorder } from './config';
-import { WireframeStructure, WireframeElement, RendererConfig, ComponentType } from './types';
+import { getRendererConfig, defaultWireframeConfig, hasBorder } from './config';
+import { WireframeStructure, WireframeElement, RendererConfig, WireframeConfig } from './types';
 import { BaseRenderer } from './renderers/BaseRenderer';
 
 /**
@@ -109,7 +109,7 @@ export class WireframeGenerator {
     const rendererConfig = getRendererConfig(component.type, this.config);
     const fullConfig: RendererConfig = {
       ...rendererConfig,
-      componentDetails: this.config.componentDetails?.[component.id],
+      componentDetails: this.config.componentDetails?.[component.id] as Record<string, unknown> | undefined,
     };
 
     // Render component content
@@ -121,13 +121,16 @@ export class WireframeGenerator {
     // Only add container rectangle with border for components that should have borders
     // No fill - all components are transparent in export
     if (fullConfig.hasBorder && component.type !== 'HorizontalLine') {
-      const rect = (renderer as BaseRenderer).createRect(
-        0,
-        0,
-        component.width,
-        component.height,
-        fullConfig
-      );
+      const rect: WireframeElement = {
+        type: 'rect',
+        x: 0,
+        y: 0,
+        width: component.width,
+        height: component.height,
+        fill: 'transparent',
+        stroke: fullConfig.strokeColor,
+        strokeWidth: fullConfig.strokeWidth,
+      };
       // Ensure fill is transparent
       if (rect.type === 'rect') {
         rect.fill = 'transparent';

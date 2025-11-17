@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Line } from 'react-konva';
 import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
 
@@ -5,8 +6,8 @@ import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
  * Renders Heading component with bold straight lines
  */
 export class HeadingRenderer extends BaseCanvasRenderer {
-  render({ width, height }: CanvasRendererProps) {
-    const lines: JSX.Element[] = [];
+  render({ width, height }: CanvasRendererProps): ReactNode {
+    const lines: ReactNode[] = [];
     const lineSpacing = 25;
     const lineThickness = 4;
     let currentY = 15;

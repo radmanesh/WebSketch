@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Line } from 'react-konva';
 import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
 
@@ -5,8 +6,8 @@ import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
  * Renders Table component with grid pattern
  */
 export class TableRenderer extends BaseCanvasRenderer {
-  render({ width, height, strokeColor }: CanvasRendererProps) {
-    const lines: JSX.Element[] = [];
+  render({ width, height, strokeColor }: CanvasRendererProps): ReactNode {
+    const lines: ReactNode[] = [];
     const rowCount = Math.max(2, Math.floor(height / 30));
     const colCount = Math.max(2, Math.floor(width / 80));
     const rowHeight = height / rowCount;

@@ -1,5 +1,6 @@
 import { BaseRenderer } from './BaseRenderer';
-import { PlacedComponent, RendererConfig, WireframeElement } from '../types';
+import { PlacedComponent } from '@/types/types';
+import { RendererConfig, WireframeElement } from '../types';
 
 /**
  * Renders HorizontalLine component as a single horizontal line

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Line } from 'react-konva';
 import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
 
@@ -5,8 +6,8 @@ import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
  * Renders NavigationBox component with hamburger icon (3 horizontal lines)
  */
 export class NavigationRenderer extends BaseCanvasRenderer {
-  render({ width, height, strokeColor }: CanvasRendererProps) {
-    const lines: JSX.Element[] = [];
+  render({ width, height, strokeColor }: CanvasRendererProps): ReactNode {
+    const lines: ReactNode[] = [];
     const iconSize = Math.min(20, width - 20, height - 20);
     const iconX = 10;
     const iconY = 10;

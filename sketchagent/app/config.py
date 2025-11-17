@@ -1,36 +1,67 @@
 """Configuration management"""
 
-import os
-from pydantic import Field
+from pydantic import Field, field_validator, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        env_parse_none_str="",
+        extra="ignore",  # Ignore extra fields from env vars
+    )
     """Application settings"""
 
     # API
-    api_key: str = os.getenv("API_KEY", "")
+    api_key: str = Field(default="")
     api_title: str = "WebSketch Agent API"
     api_version: str = "0.1.0"
 
     # OpenAI
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
-    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-    openai_temperature: float = float(os.getenv("OPENAI_TEMPERATURE", "0.3"))
+    openai_api_key: str = Field(default="")
+    openai_model: str = "gpt-4o-mini"
+    openai_temperature: float = 0.3
 
     # Redis
-    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+    redis_url: str = "redis://localhost:6379"
 
     # Logging
-    log_level: str = os.getenv("LOG_LEVEL", "INFO")
-    log_json: bool = os.getenv("LOG_JSON", "false").lower() == "true"
+    log_level: str = "INFO"
+    log_json: bool = False
 
-    # CORS
-    cors_origins: list[str] = Field(
-        default_factory=lambda: os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-    )
+    # CORS - stored as comma-separated string in env
+    cors_origins_str: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")
+
+    @computed_field
+    @property
+    def cors_origins(self) -> list[str]:
+        """Parse comma-separated CORS origins string to list"""
+        if not self.cors_origins_str:
+            return ["http://localhost:3000"]
+        origins = [origin.strip() for origin in self.cors_origins_str.split(",") if origin.strip()]
+        return origins if origins else ["http://localhost:3000"]
+
+    @field_validator("api_key", "openai_api_key", "cors_origins_str", mode="before")
+    @classmethod
+    def parse_str_fields(cls, v):
+        """Handle None values for string fields"""
+        if v is None:
+            return ""
+        return v
+
+    @field_validator("log_json", mode="before")
+    @classmethod
+    def parse_log_json(cls, v):
+        """Parse log_json from string to bool"""
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "on")
+        if v is None:
+            return False
+        return False
 
 
 settings = Settings()

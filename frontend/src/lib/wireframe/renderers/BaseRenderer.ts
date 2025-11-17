@@ -1,4 +1,5 @@
-import { IWireframeRenderer, PlacedComponent, RendererConfig, WireframeElement } from '../types';
+import { PlacedComponent } from '@/types/types';
+import { IWireframeRenderer, RendererConfig, WireframeElement } from '../types';
 
 /**
  * Base renderer class that all component renderers should extend
@@ -13,7 +14,7 @@ export abstract class BaseRenderer implements IWireframeRenderer {
   /**
    * Optional default configuration
    */
-  getDefaultConfig?(): Partial<RendererConfig> {
+  getDefaultConfig?(): Partial<RendererConfig> | undefined {
     return undefined;
   }
 

@@ -1,13 +1,14 @@
 """FastAPI application"""
 
 from contextlib import asynccontextmanager
+from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .utils.logger import setup_logging, get_logger
 from .services.redis_service import RedisService
 from .services.llm_service import LLMService
-from .api.routes import router
+from .api.routes import router, set_services
 from .api.dependencies import verify_api_key
 
 # Setup logging
@@ -33,6 +34,10 @@ async def lifespan(app: FastAPI):
         temperature=settings.openai_temperature,
     )
     await redis_service.connect()
+
+    # Set services in routes module to avoid circular import
+    set_services(redis_service, llm_service)
+
     logger.info("Service started successfully")
     yield
     # Shutdown

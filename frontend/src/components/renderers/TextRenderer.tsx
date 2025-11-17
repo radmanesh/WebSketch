@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Line } from 'react-konva';
 import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
 
@@ -5,8 +6,8 @@ import { BaseCanvasRenderer, type CanvasRendererProps } from './BaseRenderer';
  * Renders Text component with wavy horizontal lines
  */
 export class TextRenderer extends BaseCanvasRenderer {
-  render({ width, height, strokeColor }: CanvasRendererProps) {
-    const lines: JSX.Element[] = [];
+  render({ width, height, strokeColor }: CanvasRendererProps): ReactNode {
+    const lines: ReactNode[] = [];
     const lineSpacing = 20;
     const waveAmplitude = 3;
     const waveLength = 30;

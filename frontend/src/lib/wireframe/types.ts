@@ -156,7 +156,7 @@ export interface IWireframeRenderer {
   /**
    * Optional: Get default configuration for this renderer
    */
-  getDefaultConfig?(): Partial<RendererConfig>;
+  getDefaultConfig?(): Partial<RendererConfig> | undefined;
 
   /**
    * Optional: Validate component data before rendering

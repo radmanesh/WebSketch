@@ -6,9 +6,9 @@
 const getAgentApiUrl = () => {
   if (typeof window !== 'undefined') {
     // In browser, use same origin or env var
-    return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:8000';
+    return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:3000';
   }
-  return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:8000';
+  return process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:3000';
 };
 
 const AGENT_API_URL = getAgentApiUrl();

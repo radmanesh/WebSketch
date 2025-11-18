@@ -25,6 +25,8 @@ export default function ChatPanel({ components, onModifyComponents }: ChatPanelP
     reasoning: string;
     description: string;
   } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const historyRef = useRef<HTMLDivElement>(null);
 
   // Initialize session on mount if needed
@@ -43,13 +45,13 @@ export default function ChatPanel({ components, onModifyComponents }: ChatPanelP
       return;
     }
 
-    // Download the image
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = file.name;
-    link.click();
-    URL.revokeObjectURL(url);
+    // Store the image file and create preview
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -105,17 +107,23 @@ export default function ChatPanel({ components, onModifyComponents }: ChatPanelP
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (message.trim() && !isLoading) {
-      const userMessage = message.trim();
+    if ((message.trim() || selectedImage) && !isLoading) {
+      const userMessage = message.trim() || (selectedImage ? 'Analyze this image and recreate the layout' : '');
+      const imageToSend = selectedImage;
+
+      // Clear form
       setMessage('');
       setError(null);
       setPendingModification(null);
+      setSelectedImage(null);
+      setImagePreview(null);
 
-      // Add user message to history
+      // Add user message to history with image preview
       const newUserMessage: ChatMessage = {
         role: 'user',
-        content: userMessage,
+        content: userMessage || 'Uploaded image',
         timestamp: new Date(),
+        imageUrl: imagePreview || undefined,
       };
       setMessages(prev => [...prev, newUserMessage]);
 
@@ -131,6 +139,7 @@ export default function ChatPanel({ components, onModifyComponents }: ChatPanelP
             timestamp: m.timestamp?.toISOString(),
           })),
           sessionId: agentClient.getSessionId() || undefined,
+          image: imageToSend || undefined,
         });
 
         // Add assistant response to history
@@ -220,8 +229,25 @@ export default function ChatPanel({ components, onModifyComponents }: ChatPanelP
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium flex-shrink-0"
           disabled={isLoading}
         >
-          Upload Image
+          {selectedImage ? 'Change Image' : 'Upload Image'}
         </button>
+        {selectedImage && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="truncate max-w-[100px]">{selectedImage.name}</span>
+            <button
+              onClick={() => {
+                setSelectedImage(null);
+                setImagePreview(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+              className="text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
           <input
             type="text"

@@ -5,7 +5,7 @@ import json
 import uuid
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, File, UploadFile
 from fastapi.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
 from ..schemas.api import (
@@ -141,48 +141,81 @@ async def delete_session(
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
-    request: ChatRequest,
+    request: Request,
     redis: RedisService = Depends(get_redis_service),
     llm: LLMService = Depends(get_llm_service),
     _: str = Depends(verify_api_key),
 ):
-    """Chat endpoint - non-streaming"""
+    """Chat endpoint - non-streaming, supports both JSON and multipart/form-data"""
     try:
-        result = await _process_chat_request(request, redis, llm)
-        return result
-    except AgentError as e:
-        logger.error("Chat request failed", error=str(e), session_id=request.session_id or request.session_id)
-        # Return a valid ChatResponse with error information
-        # Fallback to current sketch if available
-        current_sketch = request.current_sketch
-        try:
-            if e.session_id:
-                session_data = await redis.get_session(e.session_id)
-                if session_data and session_data.get("current_sketch"):
-                    current_sketch = [
-                        PlacedComponent(**comp) for comp in session_data["current_sketch"]
-                    ]
-        except Exception:
-            pass  # Use request.current_sketch as fallback
+        content_type = request.headers.get("content-type", "")
 
+        # Handle multipart/form-data (with image)
+        if "multipart/form-data" in content_type:
+            form = await request.form()
+            message = form.get("message", "")
+            image_file: Optional[UploadFile] = form.get("image")
+            session_id = form.get("sessionId")
+
+            # Parse currentSketch from form
+            current_sketch_json = form.get("currentSketch")
+            if current_sketch_json:
+                current_sketch = json.loads(current_sketch_json)
+                current_sketch = [PlacedComponent(**comp) for comp in current_sketch]
+            else:
+                current_sketch = []
+
+            # Parse messageHistory if present
+            message_history_json = form.get("messageHistory")
+            message_history = None
+            if message_history_json:
+                message_history = json.loads(message_history_json)
+
+            # Read image data if present
+            image_data = None
+            image_format = None
+            if image_file and image_file.filename:
+                image_data = await image_file.read()
+                image_format = "bytes"
+
+            # Create ChatRequest-like object
+            chat_request = ChatRequest(
+                message=message,
+                currentSketch=current_sketch,
+                messageHistory=message_history,
+                sessionId=session_id,
+            )
+
+            result = await _process_chat_request(chat_request, redis, llm, image_data, image_format)
+            return result
+        else:
+            # Handle JSON request
+            body = await request.json()
+            request_obj = ChatRequest(**body)
+            result = await _process_chat_request(request_obj, redis, llm)
+            return result
+    except AgentError as e:
+        logger.error("Chat request failed", error=str(e), session_id=e.session_id or "")
+        # Return a valid ChatResponse with error information
+        # Fallback to empty sketch
         return ChatResponse(
             success=False,
-            modifiedSketch=current_sketch,
+            modifiedSketch=[],
             operations=[],
             reasoning=f"Error: {str(e)}",
             description=f"Request failed: {str(e)}",
-            sessionId=request.session_id or e.session_id or "",
+            sessionId=e.session_id or "",
         )
     except Exception as e:
-        logger.error("Chat request failed", error=str(e), session_id=request.session_id)
+        logger.error("Chat request failed", error=str(e))
         # Return a valid ChatResponse with error information
         return ChatResponse(
             success=False,
-            modifiedSketch=request.current_sketch,
+            modifiedSketch=[],
             operations=[],
             reasoning=f"Error: {str(e)}",
             description=f"Request failed: {str(e)}",
-            sessionId=request.session_id or "",
+            sessionId="",
         )
 
 
@@ -246,6 +279,8 @@ async def _process_chat_request(
     request: ChatRequest,
     redis_service: RedisService,
     llm_service: LLMService,
+    image_data: Optional[bytes] = None,
+    image_format: Optional[str] = None,
 ) -> ChatResponse:
     """Process chat request using agent graph"""
     # Get or create session
@@ -287,11 +322,13 @@ async def _process_chat_request(
         "user_message": request.message,
         "current_sketch": current_sketch,
         "message_history": request.message_history,
+        "image_data": image_data,
+        "image_format": image_format,
         "layout_analysis": None,
         "operations": None,
         "modification": None,
         "modified_sketch": None,
-        "step": "analyze",
+        "step": "image_analyze" if image_data else "analyze",
         "error": None,
         "initial_sketch": initial_sketch,
         "latest_sketch": latest_sketch,

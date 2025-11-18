@@ -21,6 +21,16 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             : 'bg-gray-100 text-gray-600 text-sm'
         }`}
       >
+        {message.imageUrl && (
+          <div className="mb-2">
+            <img
+              src={message.imageUrl}
+              alt="Uploaded"
+              className="max-w-full h-auto rounded border border-gray-300"
+              style={{ maxHeight: '300px' }}
+            />
+          </div>
+        )}
         <div className="whitespace-pre-wrap break-words">{message.content}</div>
         {message.timestamp && (
           <div className={`text-xs mt-1 ${isUser ? 'text-blue-100' : 'text-gray-500'}`}>

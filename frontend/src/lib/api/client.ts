@@ -19,6 +19,7 @@ export interface ChatRequest {
   currentSketch: any[];
   messageHistory?: Array<{ role: string; content: string; timestamp?: string }>;
   sessionId?: string;
+  image?: File; // Optional image file
 }
 
 export interface ChatResponse {
@@ -83,16 +84,46 @@ class AgentAPIClient {
   }
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
-    const response = await fetch(`${this.baseUrl}/api/v1/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    // Use FormData if image is present, otherwise use JSON
+    const hasImage = request.image && request.image instanceof File;
+
+    let body: FormData | string;
+    let headers: HeadersInit;
+
+    if (hasImage) {
+      // Use multipart/form-data for image uploads
+      body = new FormData();
+      body.append('message', request.message);
+      body.append('currentSketch', JSON.stringify(request.currentSketch));
+      if (request.messageHistory) {
+        body.append('messageHistory', JSON.stringify(request.messageHistory));
+      }
+      if (request.sessionId || this.sessionId) {
+        body.append('sessionId', request.sessionId || this.sessionId || '');
+      }
+      body.append('image', request.image);
+
+      headers = {
         'X-API-Key': '', // API key if needed
-      },
-      body: JSON.stringify({
+        // Don't set Content-Type for FormData, browser will set it with boundary
+      };
+    } else {
+      // Use JSON for regular requests
+      body = JSON.stringify({
         ...request,
         sessionId: request.sessionId || this.sessionId,
-      }),
+      });
+
+      headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': '', // API key if needed
+      };
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/v1/chat`, {
+      method: 'POST',
+      headers,
+      body,
     });
 
     const data = await response.json();

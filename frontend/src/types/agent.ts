@@ -6,6 +6,8 @@ export interface ChatMessage {
   role: ChatMessageRole;
   content: string;
   timestamp?: Date;
+  imageUrl?: string; // URL for displaying uploaded image
+  imageData?: string; // Base64 image data
 }
 
 export type ComponentOperationType =

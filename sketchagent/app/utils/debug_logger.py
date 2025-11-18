@@ -53,6 +53,7 @@ def log_llm_request(
     system_prompt_length: int,
     user_prompt_length: int,
     session_id: Optional[str] = None,
+    has_image: bool = False,
 ):
     """Log LLM request (without sensitive data)"""
     logger.debug(
@@ -60,6 +61,7 @@ def log_llm_request(
         session_id=session_id,
         system_prompt_length=system_prompt_length,
         user_prompt_length=user_prompt_length,
+        has_image=has_image,
     )
 
 

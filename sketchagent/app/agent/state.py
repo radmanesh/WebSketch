@@ -15,6 +15,8 @@ class AgentState(TypedDict):
     user_message: str
     current_sketch: list[PlacedComponent]
     message_history: Optional[list[dict]]
+    image_data: Optional[bytes]  # Image bytes for processing
+    image_format: Optional[str]  # Image format: "base64", "bytes", etc.
 
     # Analysis step
     layout_analysis: Optional[LayoutAnalysis]

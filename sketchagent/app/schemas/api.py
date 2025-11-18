@@ -18,6 +18,7 @@ class ChatRequest(BaseModel):
     current_sketch: Annotated[list[PlacedComponent], Field(..., alias="currentSketch", description="Current sketch state")]
     message_history: Annotated[Optional[list[ChatMessage]], Field(None, alias="messageHistory", description="Previous conversation messages")] = None
     session_id: Annotated[Optional[str], Field(None, alias="sessionId", description="Session ID for state persistence")] = None
+    # Note: image is handled separately in multipart/form-data requests, not via JSON
 
     model_config = ConfigDict(populate_by_name=True)
 

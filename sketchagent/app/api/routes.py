@@ -21,7 +21,7 @@ from ..services.llm_service import LLMService
 from ..agent.graph import create_agent_graph
 from ..agent.state import AgentState
 from ..utils.logger import get_logger
-from ..utils.errors import AgentError
+from ..utils.errors import AgentError, RedisError
 from .dependencies import verify_api_key
 
 logger = get_logger(__name__)
@@ -324,6 +324,7 @@ async def _process_chat_request(
         "message_history": request.message_history,
         "image_data": image_data,
         "image_format": image_format,
+        "image_generated_components": None,
         "layout_analysis": None,
         "operations": None,
         "modification": None,
@@ -338,6 +339,13 @@ async def _process_chat_request(
     # Run graph
     try:
         final_state = None
+        logger.debug(
+            "Starting agent graph execution",
+            session_id=session_id,
+            has_image=image_data is not None,
+            user_message=request.message[:100] if request.message else "",
+            component_count=len(current_sketch),
+        )
         async for state_dict in graph.astream(initial_state, config):
             # LangGraph returns a dict with node names as keys
             # Get the state from the last node that executed
@@ -347,6 +355,12 @@ async def _process_chat_request(
                 if node_names:
                     last_node = node_names[-1]
                     final_state = state_dict.get(last_node)
+                    logger.debug(
+                        "Graph node executed",
+                        session_id=session_id,
+                        node=last_node,
+                        step=final_state.get("step") if final_state else None,
+                    )
                     # Check for errors early
                     if final_state and final_state.get("step") == "error":
                         error_msg = final_state.get("error", "Unknown error")
@@ -382,20 +396,55 @@ async def _process_chat_request(
         operations = final_state.get("operations", [])
         modification = final_state.get("modification")
 
-        # Update session
-        await redis_service.update_session(
-            session_id,
-            current_sketch=modified_sketch,
-            operations=operations,
+        logger.info(
+            "Agent graph execution complete",
+            session_id=session_id,
+            step=final_state.get("step"),
+            operation_count=len(operations),
+            has_modification=modification is not None,
         )
+
+        # Update session (create if it doesn't exist)
+        try:
+            await redis_service.update_session(
+                session_id,
+                current_sketch=modified_sketch,
+                operations=operations,
+            )
+        except RedisError as e:
+            # If session doesn't exist, create it
+            if "not found" in str(e).lower():
+                logger.warning(
+                    "Session not found during update, creating new session",
+                    session_id=session_id,
+                    error=str(e),
+                )
+                try:
+                    await redis_service.create_session(modified_sketch, session_id)
+                    logger.info("Recreated missing session", session_id=session_id)
+                except Exception as create_err:
+                    logger.error(
+                        "Failed to recreate session",
+                        session_id=session_id,
+                        error=str(create_err),
+                    )
+                    # Don't fail the request if session update fails
+            else:
+                # Re-raise other Redis errors
+                logger.error(
+                    "Redis error during session update",
+                    session_id=session_id,
+                    error=str(e),
+                )
+                raise
 
         # Build response
         return ChatResponse(
             success=True,
             modifiedSketch=modified_sketch,
             operations=[op.model_dump() if hasattr(op, "model_dump") else op for op in operations],
-            reasoning=modification.reasoning if modification else "",
-            description=modification.description if modification else "",
+            reasoning=modification.reasoning if modification else "No changes needed",
+            description=modification.description if modification else "The current layout already satisfies the request",
             sessionId=session_id,
         )
 
@@ -403,14 +452,28 @@ async def _process_chat_request(
         # Fallback to latest sketch
         latest = await redis_service.get_latest_sketch(session_id)
         if latest:
-            await redis_service.update_session(session_id, current_sketch=latest)
+            try:
+                await redis_service.update_session(session_id, current_sketch=latest)
+            except RedisError:
+                # Session might not exist, try to create it
+                try:
+                    await redis_service.create_session(latest, session_id)
+                except Exception:
+                    pass  # Ignore if creation also fails
         raise
     except Exception as e:
         logger.error("Agent execution failed", error=str(e), session_id=session_id)
         # Fallback to latest sketch
         latest = await redis_service.get_latest_sketch(session_id)
         if latest:
-            await redis_service.update_session(session_id, current_sketch=latest)
+            try:
+                await redis_service.update_session(session_id, current_sketch=latest)
+            except RedisError:
+                # Session might not exist, try to create it
+                try:
+                    await redis_service.create_session(latest, session_id)
+                except Exception:
+                    pass  # Ignore if creation also fails
         raise AgentError(f"Agent execution failed: {str(e)}", session_id)
 
 

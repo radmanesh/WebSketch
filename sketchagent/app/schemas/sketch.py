@@ -48,7 +48,7 @@ class PlacedComponent(BaseModel):
 class ComponentOperation(BaseModel):
     """Component operation matching TypeScript ComponentOperation"""
     type: Literal[
-        "move", "resize", "add", "delete", "modify", "align", "distribute"
+        "move", "resize", "add", "delete", "modify", "align", "distribute", "replace"
     ] = Field(..., description="Operation type")
     componentId: Optional[str] = Field(None, description="Target component ID")
     componentType: Optional[str] = Field(None, description="Component type for add operations")
@@ -62,6 +62,7 @@ class ComponentOperation(BaseModel):
         None, description="Alignment type"
     )
     spacing: Optional[float] = Field(None, description="Spacing for distribution")
+    components: Optional[list[PlacedComponent]] = Field(None, description="Components for replace operation")
 
 
 class SketchModification(BaseModel):

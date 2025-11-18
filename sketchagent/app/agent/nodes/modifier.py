@@ -94,13 +94,18 @@ You can perform these operations:
 7. **distribute**: Distribute components with spacing
    - Requires: targetIds (array), spacing (number)
 
+8. **replace**: Replace the entire canvas with new components (redraws the whole layout)
+   - Requires: components (array of PlacedComponent objects)
+   - Use this when the user wants to create/draw a wireframe from an image or completely replace the current layout
+   - When image-generated components are available and user requests to "create", "draw", or "generate" the wireframe, use replace operation with the image-generated components
+
 ## Response Format
 
 You must respond with a valid JSON object matching this schema:
 {
   "operations": [
     {
-      "type": "move|resize|add|delete|modify|align|distribute",
+      "type": "move|resize|add|delete|modify|align|distribute|replace",
       "componentId": "string (optional)",
       "componentType": "string (optional, for add)",
       "x": "number (optional)",
@@ -110,7 +115,8 @@ You must respond with a valid JSON object matching this schema:
       "props": "object (optional)",
       "targetIds": "array of strings (optional)",
       "alignment": "left|right|center|top|bottom (optional)",
-      "spacing": "number (optional)"
+      "spacing": "number (optional)",
+      "components": "array of PlacedComponent objects (required for replace)"
     }
   ],
   "reasoning": "Brief explanation of why these operations were chosen",
@@ -126,7 +132,9 @@ You must respond with a valid JSON object matching this schema:
 5. When moving components, calculate new positions relative to canvas or other components
 6. For alignment operations, use the specified alignment type
 7. For distribution, calculate spacing evenly between components
-8. Respond ONLY with valid JSON, no markdown formatting or code blocks"""
+8. If the user's request cannot be fulfilled, requires no changes, or is already satisfied by the current layout, return an empty operations array with a clear explanation in the reasoning field
+9. **IMPORTANT**: If image-generated components are available (check the context) and the user requests to "create", "draw", "generate", or "make" a wireframe from an image, use a "replace" operation with the image-generated components. This replaces the entire canvas with the detected layout.
+10. Respond ONLY with valid JSON, no markdown formatting or code blocks"""
 
 
 def build_user_prompt(state: AgentState) -> str:
@@ -151,6 +159,23 @@ def build_user_prompt(state: AgentState) -> str:
             f"- {c['description']}" for c in layout_analysis["components"]
         )
 
+    # Check for image-generated components
+    image_generated = state.get("image_generated_components")
+    image_components_info = ""
+    if image_generated:
+        image_components_json = json.dumps(
+            [comp.model_dump() for comp in image_generated], indent=2
+        )
+        image_components_info = f"""
+
+**IMPORTANT - Image-Generated Components Available:**
+Components have been generated from an uploaded image. If the user requests to "create", "draw", "generate", or "make" the wireframe, use a "replace" operation with these components:
+
+```json
+{image_components_json}
+```
+"""
+
     return f"""## Current Sketch State
 
 **Layout Description:**
@@ -166,7 +191,7 @@ def build_user_prompt(state: AgentState) -> str:
 ```json
 {sketch_json}
 ```
-
+{image_components_info}
 ## User Request
 
 {state['user_message']}
@@ -218,6 +243,22 @@ async def modify_node(state: AgentState, llm_service: LLMService) -> AgentState:
                 ComponentOperation(**op) if isinstance(op, dict) else op
                 for op in modification.operations
             ]
+
+            # Check if there are no operations to perform
+            if not operations or len(operations) == 0:
+                logger.info(
+                    "No operations generated - nothing to do",
+                    session_id=session_id,
+                    reasoning=modification.reasoning,
+                )
+                # Set operations to empty list and skip to complete
+                state["modification"] = modification
+                state["operations"] = []
+                state["step"] = "complete"
+                # Set modified_sketch to current_sketch since nothing changed
+                state["modified_sketch"] = state["current_sketch"]
+                log_state_snapshot(state, "after_modify_no_ops", session_id)
+                return state
 
             state["modification"] = modification
             state["operations"] = operations

@@ -2,6 +2,16 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Poetry
 RUN pip install poetry==1.8.0
 

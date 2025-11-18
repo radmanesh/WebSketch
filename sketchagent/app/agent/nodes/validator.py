@@ -14,6 +14,17 @@ def validate_node(state: AgentState) -> AgentState:
     logger.info("Validating operations", session_id=session_id)
 
     if not state.get("operations"):
+        # Check if step is already complete (no operations needed)
+        current_step = state.get("step", "validate")
+        if current_step == "complete":
+            logger.info(
+                "No operations to validate, but step is already complete - passing through",
+                session_id=session_id,
+            )
+            # Keep step as complete and return
+            return state
+
+        # Otherwise, this is an error condition
         logger.warning("No operations to validate", session_id=session_id)
         state["step"] = "error"
         state["error"] = "No operations to validate"

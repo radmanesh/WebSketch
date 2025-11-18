@@ -85,12 +85,13 @@ class AgentAPIClient {
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
     // Use FormData if image is present, otherwise use JSON
-    const hasImage = request.image && request.image instanceof File;
+    const imageFile = request.image && request.image instanceof File ? request.image : null;
+    const hasImage = imageFile !== null;
 
     let body: FormData | string;
     let headers: HeadersInit;
 
-    if (hasImage) {
+    if (hasImage && imageFile) {
       // Use multipart/form-data for image uploads
       body = new FormData();
       body.append('message', request.message);
@@ -101,7 +102,7 @@ class AgentAPIClient {
       if (request.sessionId || this.sessionId) {
         body.append('sessionId', request.sessionId || this.sessionId || '');
       }
-      body.append('image', request.image);
+      body.append('image', imageFile);
 
       headers = {
         'X-API-Key': '', // API key if needed

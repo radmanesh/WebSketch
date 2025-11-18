@@ -26,6 +26,7 @@ def validate_operations(
             "modify",
             "align",
             "distribute",
+            "replace",
         ]:
             return False, f"Operation {i}: Invalid operation type '{operation.type}'"
 
@@ -74,6 +75,18 @@ def validate_operations(
             if operation.spacing is None:
                 return False, f"Operation {i}: Missing spacing for distribute operation"
 
+        if operation.type == "replace":
+            if not operation.components or len(operation.components) == 0:
+                return False, f"Operation {i}: Missing or empty components array for replace operation"
+            # Validate each component in the replace operation
+            for j, comp in enumerate(operation.components):
+                if not isinstance(comp, PlacedComponent):
+                    return False, f"Operation {i}, Component {j}: Invalid component type"
+                if comp.width < 20:
+                    return False, f"Operation {i}, Component {j}: Width must be at least 20px"
+                if comp.height < 2:
+                    return False, f"Operation {i}, Component {j}: Height must be at least 2px"
+
     return True, None
 
 
@@ -105,6 +118,8 @@ def execute_operations(
                 sketch = _execute_align(sketch, operation)
             elif operation.type == "distribute":
                 sketch = _execute_distribute(sketch, operation)
+            elif operation.type == "replace":
+                sketch = _execute_replace(sketch, operation)
 
         return sketch
     except Exception as e:
@@ -335,6 +350,40 @@ def _execute_distribute(
             result.append(updated_components[comp.id])
         else:
             result.append(comp)
+
+    return result
+
+
+def _execute_replace(
+    sketch: list[PlacedComponent], operation: ComponentOperation
+) -> list[PlacedComponent]:
+    """Execute replace operation - replaces entire canvas with new components"""
+    if not operation.components:
+        return sketch
+
+    # Validate components
+    result = []
+    for comp in operation.components:
+        # Ensure minimum sizes
+        min_width = 20.0
+        min_height = 20.0
+        if comp.type == ComponentType.HORIZONTAL_LINE:
+            min_height = 2.0
+
+        width = max(min_width, comp.width)
+        height = max(min_height, comp.height)
+
+        result.append(
+            PlacedComponent(
+                id=comp.id,
+                type=comp.type,
+                x=comp.x,
+                y=comp.y,
+                width=width,
+                height=height,
+                props=comp.props or {},
+            )
+        )
 
     return result
 

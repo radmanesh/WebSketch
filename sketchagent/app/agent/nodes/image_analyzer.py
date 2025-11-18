@@ -31,6 +31,9 @@ async def image_analyzer_node(
                 image_data, image_format, session_id
             )
 
+            # Store generated components in special field for modifier to use
+            state["image_generated_components"] = components
+
             # Set generated components as current sketch
             state["current_sketch"] = components
             state["latest_sketch"] = components

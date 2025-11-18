@@ -16,14 +16,15 @@ services:
     build:
       context: ./sketchagent
       dockerfile: Dockerfile
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
       - REDIS_URL=redis://redis:6379
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=gpt-4o-mini
       - LOG_LEVEL=INFO
       - LOG_JSON=false
+      - DEBUG_MODE=true
       - API_KEY=${API_KEY:-}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8000}
     volumes:

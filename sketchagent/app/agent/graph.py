@@ -37,6 +37,8 @@ def should_continue_after_modify(state: AgentState) -> Literal["validate", "end"
 
     if step == "error":
         return "end"
+    if step == "complete":
+        return "end"
     return "validate"
 
 
